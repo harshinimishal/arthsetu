@@ -1,4 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
+import { cn } from '../lib/utils';
 import { 
   ArrowLeft, 
   Calendar, 
@@ -47,17 +48,17 @@ export default function JobDetails() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <section className="flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <Link to="/jobs" className="p-3 bg-surface-container rounded-2xl hover:bg-surface-container-high transition-all">
+      <section className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="flex items-center gap-4 md:gap-6">
+          <Link to="/jobs" className="p-3 bg-surface-container rounded-2xl hover:bg-surface-container-high transition-all shrink-0">
             <ArrowLeft className="w-5 h-5 text-on-surface-variant" />
           </Link>
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <h2 className="text-3xl font-bold tracking-tight text-on-surface">Metro Line 3 Foundation</h2>
+              <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-on-surface">Metro Line 3 Foundation</h2>
               <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-bold uppercase tracking-wider">Active</span>
             </div>
-            <div className="flex items-center gap-4 text-sm text-on-surface-variant font-medium">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs md:text-sm text-on-surface-variant font-medium">
               <div className="flex items-center gap-1.5">
                 <Briefcase className="w-4 h-4" />
                 <span>MMRDA</span>
@@ -73,11 +74,11 @@ export default function JobDetails() {
             </div>
           </div>
         </div>
-        <div className="flex gap-4">
-          <button className="flex items-center gap-2 px-6 py-3 bg-surface-container rounded-2xl hover:bg-surface-container-high transition-all text-sm font-bold">
+        <div className="flex flex-wrap gap-3 md:gap-4">
+          <button className="flex items-center gap-2 px-6 py-3 bg-surface-container rounded-2xl hover:bg-surface-container-high transition-all text-sm font-bold flex-1 md:flex-none justify-center">
             Edit Project
           </button>
-          <button className="btn-primary flex items-center gap-2 shadow-xl shadow-primary/20">
+          <button className="btn-primary flex items-center gap-2 shadow-xl shadow-primary/20 flex-1 md:flex-none justify-center">
             <Plus className="w-5 h-5" />
             Add Transaction
           </button>
@@ -151,9 +152,9 @@ export default function JobDetails() {
           <div className="organic-card">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold">Transaction History</h3>
-              <button className="text-primary font-bold text-sm flex items-center gap-1 hover:underline">
+              <Link to="/transactions" className="text-primary font-bold text-sm flex items-center gap-1 hover:underline">
                 View All <ChevronRight className="w-4 h-4" />
-              </button>
+              </Link>
             </div>
             <div className="space-y-4">
               {transactions.map((tx) => (
@@ -217,9 +218,9 @@ export default function JobDetails() {
                 </div>
               ))}
             </div>
-            <button className="w-full mt-6 py-3 bg-surface-container-highest text-on-surface font-bold text-sm rounded-2xl hover:bg-outline/10 transition-all">
+            <Link to="/labor" className="w-full mt-6 py-3 bg-surface-container-highest text-on-surface font-bold text-sm rounded-2xl hover:bg-outline/10 transition-all flex items-center justify-center">
               Manage Workforce
-            </button>
+            </Link>
           </div>
 
           <div className="organic-card bg-tertiary text-white">
@@ -255,8 +256,4 @@ export default function JobDetails() {
       </div>
     </div>
   );
-}
-
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(' ');
 }

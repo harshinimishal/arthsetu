@@ -2,10 +2,14 @@ import { useState, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Mail, Lock, Phone, ArrowRight, Check } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Signup() {
   const navigate = useNavigate();
+  const { signupWithEmail } = useAuth();
   const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -15,12 +19,32 @@ export default function Signup() {
     role: 'contractor'
   });
 
-  const handleSignup = (e: FormEvent) => {
+  const handleSignup = async (e: FormEvent) => {
     e.preventDefault();
+
     if (step < 2) {
+      setError('');
       setStep(step + 1);
-    } else {
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      await signupWithEmail({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone,
+        company: formData.company,
+        role: formData.role,
+      });
       navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Failed to create account');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -66,11 +90,11 @@ export default function Signup() {
       </div>
 
       {/* Right Side - Form */}
-      <div className="flex-1 flex items-center justify-center p-10">
+      <div className="flex-1 flex items-center justify-center p-6 md:p-10">
         <motion.div 
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="w-full max-w-md space-y-10"
+          className="w-full max-w-md space-y-8 md:space-y-10"
         >
           <div className="space-y-4">
             <div className="flex gap-2">
@@ -82,10 +106,16 @@ export default function Signup() {
               ))}
             </div>
             <div className="space-y-2">
-              <h3 className="text-4xl font-bold text-on-surface">Create Account</h3>
+              <h3 className="text-3xl md:text-4xl font-bold text-on-surface">Create Account</h3>
               <p className="text-on-surface-variant">Step {step} of 2: {step === 1 ? 'Personal Details' : 'Business Information'}</p>
             </div>
           </div>
+
+          {error && (
+            <div className="p-4 bg-error-container text-on-error-container rounded-2xl text-sm font-medium">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSignup} className="space-y-6">
             {step === 1 ? (
@@ -190,8 +220,12 @@ export default function Signup() {
               </motion.div>
             )}
 
-            <button type="submit" className="w-full btn-primary py-4 flex items-center justify-center gap-2 group shadow-xl shadow-primary/20">
-              {step === 1 ? 'Continue' : 'Create Account'}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full btn-primary py-4 flex items-center justify-center gap-2 group shadow-xl shadow-primary/20 disabled:opacity-50"
+            >
+              {step === 1 ? 'Continue' : loading ? 'Creating Account...' : 'Create Account'}
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
           </form>

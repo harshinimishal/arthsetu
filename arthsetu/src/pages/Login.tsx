@@ -1,16 +1,43 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, Globe } from 'lucide-react';
+import { Mail, Lock, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login, loginWithEmail } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: FormEvent) => {
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
-    navigate('/dashboard');
+    setLoading(true);
+    setError('');
+
+    try {
+      await loginWithEmail(email, password);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Failed to sign in');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await login();
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Failed to sign in with Google');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -50,16 +77,22 @@ export default function Login() {
       </div>
 
       {/* Right Side - Form */}
-      <div className="flex-1 flex items-center justify-center p-10">
+      <div className="flex-1 flex items-center justify-center p-6 md:p-10">
         <motion.div 
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="w-full max-w-md space-y-10"
+          className="w-full max-w-md space-y-8 md:space-y-10"
         >
           <div className="space-y-2">
-            <h3 className="text-4xl font-bold text-on-surface">Welcome Back</h3>
+            <h3 className="text-3xl md:text-4xl font-bold text-on-surface">Welcome Back</h3>
             <p className="text-on-surface-variant">Please enter your details to sign in.</p>
           </div>
+
+          {error && (
+            <div className="p-4 bg-error-container text-on-error-container rounded-2xl text-sm font-medium">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
@@ -95,13 +128,12 @@ export default function Login() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 ml-1">
-              <input type="checkbox" id="remember" className="w-4 h-4 rounded border-outline text-primary focus:ring-primary" />
-              <label htmlFor="remember" className="text-sm text-on-surface-variant">Remember me for 30 days</label>
-            </div>
-
-            <button type="submit" className="w-full btn-primary py-4 flex items-center justify-center gap-2 group shadow-xl shadow-primary/20">
-              Sign In
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full btn-primary py-4 flex items-center justify-center gap-2 group shadow-xl shadow-primary/20 disabled:opacity-50"
+            >
+              {loading ? 'Signing In...' : 'Sign In'}
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
           </form>
@@ -115,14 +147,14 @@ export default function Login() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <button className="flex items-center justify-center gap-3 py-3 px-4 bg-white border border-outline/10 rounded-2xl hover:bg-surface-container transition-all font-medium">
+          <div className="grid grid-cols-1 gap-4">
+            <button 
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              className="flex items-center justify-center gap-3 py-4 px-4 bg-white border border-outline/10 rounded-2xl hover:bg-surface-container transition-all font-bold shadow-sm disabled:opacity-50"
+            >
               <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" />
-              Google
-            </button>
-            <button className="flex items-center justify-center gap-3 py-3 px-4 bg-white border border-outline/10 rounded-2xl hover:bg-surface-container transition-all font-medium">
-              <Globe className="w-5 h-5 text-blue-600" />
-              Microsoft
+              Sign in with Google
             </button>
           </div>
 

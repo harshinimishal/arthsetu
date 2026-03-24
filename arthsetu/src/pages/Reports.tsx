@@ -12,34 +12,37 @@ import {
   Clock
 } from 'lucide-react';
 import { motion } from 'motion/react';
-
-const reportTypes = [
-  { id: 'financial', label: 'Financial Summary', icon: FileText, description: 'Revenue, expenses, and profit margins.' },
-  { id: 'labor', label: 'Labor & Attendance', icon: FileSpreadsheet, description: 'Worker attendance and wage payouts.' },
-  { id: 'job', label: 'Job Performance', icon: FileJson, description: 'Project timelines and budget utilization.' },
-  { id: 'tax', label: 'Tax & Compliance', icon: FileText, description: 'GST and other regulatory reports.' },
-];
-
-const recentExports = [
-  { id: '1', name: 'Monthly_Financial_Feb24.pdf', date: '24 Mar 2024', size: '2.4 MB', status: 'completed' },
-  { id: '2', name: 'Worker_Attendance_Week12.xlsx', date: '22 Mar 2024', size: '1.1 MB', status: 'completed' },
-  { id: '3', name: 'Metro_Project_Audit.pdf', date: '20 Mar 2024', size: '5.8 MB', status: 'processing' },
-];
+import { useTranslation } from 'react-i18next';
+import { cn } from '../lib/utils';
 
 export default function Reports() {
+  const { t } = useTranslation();
   const [selectedType, setSelectedType] = useState('financial');
+
+  const reportTypes = [
+    { id: 'financial', label: t('total_revenue'), icon: FileText, description: 'Revenue, expenses, and profit margins.' },
+    { id: 'labor', label: t('team'), icon: FileSpreadsheet, description: 'Worker attendance and wage payouts.' },
+    { id: 'job', label: t('projects'), icon: FileJson, description: 'Project timelines and budget utilization.' },
+    { id: 'tax', label: t('reports'), icon: FileText, description: 'GST and other regulatory reports.' },
+  ];
+
+  const recentExports = [
+    { id: '1', name: 'Monthly_Financial_Feb24.pdf', date: '24 Mar 2024', size: '2.4 MB', status: 'completed' },
+    { id: '2', name: 'Worker_Attendance_Week12.xlsx', date: '22 Mar 2024', size: '1.1 MB', status: 'completed' },
+    { id: '3', name: 'Metro_Project_Audit.pdf', date: '20 Mar 2024', size: '5.8 MB', status: 'processing' },
+  ];
 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <section className="flex items-end justify-between">
+      <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
-          <h2 className="text-4xl font-bold tracking-tight text-on-surface">Reports & Export</h2>
-          <p className="text-on-surface-variant text-lg">Generate detailed reports and export your data for external use.</p>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-on-surface">{t('reports')}</h2>
+          <p className="text-on-surface-variant text-base md:text-lg">{t('manage_preferences')}</p>
         </div>
-        <button className="btn-primary flex items-center gap-2 shadow-xl shadow-primary/20">
+        <button className="btn-primary flex items-center gap-2 shadow-xl shadow-primary/20 w-full md:w-auto justify-center">
           <Download className="w-5 h-5" />
-          Export All Data
+          {t('save_changes')}
         </button>
       </section>
 
@@ -111,12 +114,12 @@ export default function Reports() {
               </div>
             </div>
 
-            <div className="pt-6 border-t border-outline/10 flex items-center justify-between">
-              <div className="flex gap-4">
-                <button className="px-6 py-3 bg-surface-container-highest rounded-2xl font-bold text-sm hover:bg-outline/10 transition-all">
+            <div className="pt-6 border-t border-outline/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex flex-wrap gap-4 w-full sm:w-auto">
+                <button className="flex-1 sm:flex-none px-6 py-3 bg-surface-container-highest rounded-2xl font-bold text-sm hover:bg-outline/10 transition-all">
                   Preview Report
                 </button>
-                <button className="btn-primary flex items-center gap-2 text-sm">
+                <button className="flex-1 sm:flex-none btn-primary flex items-center justify-center gap-2 text-sm">
                   <Download className="w-4 h-4" />
                   Generate PDF
                 </button>
@@ -128,9 +131,9 @@ export default function Reports() {
           </div>
 
           <div className="organic-card">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
               <h3 className="text-xl font-bold">Recent Exports</h3>
-              <div className="relative w-64">
+              <div className="relative w-full sm:w-64">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
                 <input 
                   type="text" 
@@ -172,8 +175,4 @@ export default function Reports() {
       </div>
     </div>
   );
-}
-
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(' ');
 }

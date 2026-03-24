@@ -9,10 +9,13 @@ import {
   ChevronRight,
   TrendingUp,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  Briefcase
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { cn } from '../lib/utils';
 
 const jobs = [
   { 
@@ -62,6 +65,7 @@ const jobs = [
 ];
 
 export default function Jobs() {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState('all');
 
   const filteredJobs = filter === 'all' ? jobs : jobs.filter(j => j.status === filter);
@@ -69,23 +73,23 @@ export default function Jobs() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <section className="flex items-end justify-between">
+      <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
-          <h2 className="text-4xl font-bold tracking-tight text-on-surface">Job Management</h2>
-          <p className="text-on-surface-variant text-lg">Track and manage all your active and upcoming projects.</p>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-on-surface">{t('projects')}</h2>
+          <p className="text-on-surface-variant text-base md:text-lg">{t('manage_preferences')}</p>
         </div>
-        <button className="btn-primary flex items-center gap-2 shadow-xl shadow-primary/20">
+        <Link to="/jobs/create" className="btn-primary flex items-center gap-2 shadow-xl shadow-primary/20 justify-center">
           <Plus className="w-5 h-5" />
-          Create New Job
-        </button>
+          {t('create_new')}
+        </Link>
       </section>
 
       {/* Summary Cards */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {[
-          { label: 'Active Projects', value: '02', icon: TrendingUp, color: 'text-primary' },
-          { label: 'Pending Approval', value: '01', icon: Clock, color: 'text-secondary-container' },
-          { label: 'Completed This Month', value: '04', icon: CheckCircle2, color: 'text-tertiary' },
+          { label: t('active_projects'), value: '02', icon: TrendingUp, color: 'text-primary' },
+          { label: t('pending_payouts'), value: '01', icon: Clock, color: 'text-secondary-container' },
+          { label: t('completed_projects'), value: '04', icon: CheckCircle2, color: 'text-tertiary' },
         ].map((card, i) => (
           <div key={i} className="organic-card flex items-center gap-6">
             <div className="p-4 rounded-2xl bg-surface-container-highest">
@@ -101,19 +105,21 @@ export default function Jobs() {
 
       {/* Filters & Search */}
       <section className="flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="flex bg-surface-container p-1 rounded-2xl w-full md:w-auto">
-          {['all', 'active', 'pending', 'completed'].map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={cn(
-                "px-6 py-2 rounded-xl text-sm font-bold capitalize transition-all",
-                filter === f ? "bg-white shadow-sm text-primary" : "text-on-surface-variant hover:text-on-surface"
-              )}
-            >
-              {f}
-            </button>
-          ))}
+        <div className="flex bg-surface-container p-1 rounded-2xl w-full md:w-auto overflow-x-auto no-scrollbar">
+          <div className="flex min-w-max">
+            {['all', 'active', 'pending', 'completed'].map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={cn(
+                  "px-6 py-2 rounded-xl text-sm font-bold capitalize transition-all",
+                  filter === f ? "bg-white shadow-sm text-primary" : "text-on-surface-variant hover:text-on-surface"
+                )}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="flex gap-4 w-full md:w-auto">
@@ -209,17 +215,5 @@ export default function Jobs() {
         ))}
       </section>
     </div>
-  );
-}
-
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(' ');
-}
-
-function Briefcase({ className }: { className?: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-    </svg>
   );
 }

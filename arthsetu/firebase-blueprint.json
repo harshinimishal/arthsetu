@@ -1,0 +1,113 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User profile information and settings.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique user ID from Firebase Auth." },
+        "displayName": { "type": "string", "description": "User's full name." },
+        "email": { "type": "string", "format": "email", "description": "User's email address." },
+        "photoURL": { "type": "string", "description": "User's profile photo URL." },
+        "businessType": { "type": "string", "enum": ["contract", "service"], "description": "Selected business model." },
+        "isDyslexiaMode": { "type": "boolean", "description": "Dyslexia-friendly mode preference." },
+        "language": { "type": "string", "enum": ["en", "hi"], "description": "Preferred language." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the profile was created." }
+      },
+      "required": ["uid", "email"]
+    },
+    "Job": {
+      "title": "Job/Project",
+      "description": "A construction project or service job.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique job ID." },
+        "ownerUid": { "type": "string", "description": "UID of the user who owns this job." },
+        "title": { "type": "string", "description": "Job title." },
+        "client": { "type": "string", "description": "Client name." },
+        "location": { "type": "string", "description": "Job location." },
+        "status": { "type": "string", "enum": ["active", "pending", "completed"], "description": "Current status of the job." },
+        "budget": { "type": "number", "description": "Total budget for the job." },
+        "spent": { "type": "number", "description": "Amount spent so far." },
+        "progress": { "type": "number", "description": "Progress percentage (0-100)." },
+        "startDate": { "type": "string", "format": "date", "description": "Start date of the job." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the job was created." }
+      },
+      "required": ["ownerUid", "title", "status"]
+    },
+    "Worker": {
+      "title": "Worker",
+      "description": "A worker registered in the system.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique worker ID." },
+        "ownerUid": { "type": "string", "description": "UID of the user who registered this worker." },
+        "name": { "type": "string", "description": "Worker's full name." },
+        "role": { "type": "string", "description": "Worker's role (e.g., Mason, Plumber)." },
+        "status": { "type": "string", "enum": ["active", "inactive"], "description": "Worker's current status." },
+        "dailyWage": { "type": "number", "description": "Daily wage amount." },
+        "phone": { "type": "string", "description": "Worker's phone number." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the worker was registered." }
+      },
+      "required": ["ownerUid", "name", "role", "status"]
+    },
+    "Transaction": {
+      "title": "Financial Transaction",
+      "description": "A credit or debit transaction.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique transaction ID." },
+        "ownerUid": { "type": "string", "description": "UID of the user who owns this transaction." },
+        "type": { "type": "string", "enum": ["credit", "debit"], "description": "Transaction type." },
+        "amount": { "type": "number", "description": "Transaction amount." },
+        "category": { "type": "string", "description": "Transaction category (e.g., Material, Labor)." },
+        "jobId": { "type": "string", "description": "ID of the associated job." },
+        "date": { "type": "string", "format": "date", "description": "Transaction date." },
+        "status": { "type": "string", "enum": ["completed", "pending"], "description": "Transaction status." },
+        "recipient": { "type": "string", "description": "Recipient or source of funds." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the transaction was created." }
+      },
+      "required": ["ownerUid", "type", "amount", "date", "status"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "An invoice generated for a job.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique invoice ID." },
+        "ownerUid": { "type": "string", "description": "UID of the user who owns this invoice." },
+        "invoiceNumber": { "type": "string", "description": "Invoice number." },
+        "jobId": { "type": "string", "description": "ID of the associated job." },
+        "clientName": { "type": "string", "description": "Client name." },
+        "date": { "type": "string", "format": "date", "description": "Invoice date." },
+        "dueDate": { "type": "string", "format": "date", "description": "Invoice due date." },
+        "totalAmount": { "type": "number", "description": "Total invoice amount." },
+        "status": { "type": "string", "enum": ["paid", "pending", "overdue"], "description": "Invoice status." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the invoice was created." }
+      },
+      "required": ["ownerUid", "invoiceNumber", "jobId", "totalAmount", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "User profiles."
+    },
+    "/jobs/{jobId}": {
+      "schema": "Job",
+      "description": "Project and job details."
+    },
+    "/workers/{workerId}": {
+      "schema": "Worker",
+      "description": "Worker profiles."
+    },
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Financial transactions."
+    },
+    "/invoices/{invoiceId}": {
+      "schema": "Invoice",
+      "description": "Invoices."
+    }
+  }
+}

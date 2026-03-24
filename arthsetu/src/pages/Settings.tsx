@@ -1,54 +1,131 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   User, 
   Bell, 
   Shield, 
   Globe, 
-  Moon, 
   HelpCircle, 
   ChevronRight,
   Camera,
-  Mail,
-  Phone,
-  MapPin,
-  Save
+  Save,
+  Type,
+  Briefcase,
+  Users
 } from 'lucide-react';
 import { motion } from 'motion/react';
-
-const settingsTabs = [
-  { id: 'profile', label: 'Profile Settings', icon: User },
-  { id: 'notifications', label: 'Notifications', icon: Bell },
-  { id: 'security', label: 'Security & Privacy', icon: Shield },
-  { id: 'language', label: 'Language & Region', icon: Globe },
-  { id: 'help', label: 'Help & Support', icon: HelpCircle },
-];
+import { useTranslation } from 'react-i18next';
+import { cn } from '../lib/utils';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Settings() {
+  const { t, i18n } = useTranslation();
+  const { profile, updateProfile } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
+  const [isSaving, setIsSaving] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
+
+  const isDyslexiaMode = Boolean(profile?.isDyslexiaMode);
+  const businessType = profile?.businessType || localStorage.getItem('businessType') || 'contract';
+
+  useEffect(() => {
+    if (isDyslexiaMode) {
+      document.body.classList.add('dyslexia-mode');
+    } else {
+      document.body.classList.remove('dyslexia-mode');
+    }
+  }, [isDyslexiaMode]);
+
+  const settingsTabs = [
+    { id: 'profile', label: t('profile_settings'), icon: User },
+    { id: 'notifications', label: t('notifications'), icon: Bell },
+    { id: 'security', label: t('security'), icon: Shield },
+    { id: 'language', label: t('language'), icon: Globe },
+    { id: 'accessibility', label: t('accessibility'), icon: Type },
+    { id: 'help', label: t('help'), icon: HelpCircle },
+  ];
+
+  const handleLanguageChange = async (lang: string) => {
+    await i18n.changeLanguage(lang);
+    try {
+      await updateProfile({ language: lang });
+      setStatusMessage('Language preference saved.');
+    } catch (error) {
+      console.error('Failed to save language:', error);
+      setStatusMessage('Failed to save language preference.');
+    }
+  };
+
+  const toggleDyslexiaMode = async () => {
+    try {
+      await updateProfile({ isDyslexiaMode: !isDyslexiaMode });
+      setStatusMessage('Accessibility preference saved.');
+    } catch (error) {
+      console.error('Failed to save accessibility setting:', error);
+      setStatusMessage('Failed to save accessibility preference.');
+    }
+  };
+
+  const handleBusinessTypeChange = async (type: string) => {
+    localStorage.setItem('businessType', type);
+    try {
+      await updateProfile({ businessType: type });
+      setStatusMessage('Business model saved.');
+    } catch (error) {
+      console.error('Failed to save business model:', error);
+      setStatusMessage('Failed to save business model.');
+    }
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await updateProfile({
+        businessType,
+        isDyslexiaMode,
+        language: i18n.language,
+      });
+      setStatusMessage('Settings saved successfully.');
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+      setStatusMessage('Failed to save settings.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <section className="flex items-end justify-between">
+      <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
-          <h2 className="text-4xl font-bold tracking-tight text-on-surface">Settings & Profile</h2>
-          <p className="text-on-surface-variant text-lg">Manage your account preferences and personal information.</p>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-on-surface">{t('settings')}</h2>
+          <p className="text-on-surface-variant text-base md:text-lg">{t('manage_preferences')}</p>
         </div>
-        <button className="btn-primary flex items-center gap-2 shadow-xl shadow-primary/20">
+        <button
+          onClick={handleSave}
+          disabled={isSaving}
+          className="btn-primary flex items-center gap-2 shadow-xl shadow-primary/20 w-full md:w-auto justify-center disabled:opacity-60"
+        >
           <Save className="w-5 h-5" />
-          Save Changes
+          {isSaving ? 'Saving...' : t('save_changes')}
         </button>
       </section>
 
+      {statusMessage && (
+        <div className="rounded-2xl bg-surface-container px-4 py-3 text-sm text-on-surface-variant">
+          {statusMessage}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Settings Sidebar */}
-        <section className="lg:col-span-1 space-y-2">
+        <section className="lg:col-span-1 flex flex-row lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide">
           {settingsTabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "w-full text-left p-4 rounded-2xl transition-all duration-300 flex items-center gap-4",
+                "whitespace-nowrap lg:whitespace-normal text-left p-4 rounded-2xl transition-all duration-300 flex items-center gap-4 shrink-0 lg:shrink",
                 activeTab === tab.id 
                   ? "bg-primary text-white shadow-lg shadow-primary/20" 
                   : "text-on-surface-variant hover:bg-surface-container-high"
@@ -56,7 +133,7 @@ export default function Settings() {
             >
               <tab.icon className="w-5 h-5" />
               <span className="font-bold text-sm">{tab.label}</span>
-              {activeTab !== tab.id && <ChevronRight className="w-4 h-4 ml-auto opacity-50" />}
+              {activeTab !== tab.id && <ChevronRight className="hidden lg:block w-4 h-4 ml-auto opacity-50" />}
             </button>
           ))}
         </section>
@@ -80,8 +157,10 @@ export default function Settings() {
                   </button>
                 </div>
                 <div className="text-center md:text-left space-y-2">
-                  <h3 className="text-2xl font-bold text-on-surface">Rajesh Kumar</h3>
-                  <p className="text-on-surface-variant font-medium">Senior Contractor • Mumbai, India</p>
+                  <h3 className="text-2xl font-bold text-on-surface">{profile?.displayName || 'Profile'}</h3>
+                  <p className="text-on-surface-variant font-medium">
+                    {businessType === 'contract' ? 'Senior Contractor' : 'Service Provider'} • Mumbai, India
+                  </p>
                   <div className="flex flex-wrap justify-center md:justify-start gap-2 pt-2">
                     <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-bold uppercase">Verified Partner</span>
                     <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] font-bold uppercase">Premium Account</span>
@@ -89,90 +168,107 @@ export default function Settings() {
                 </div>
               </div>
 
-              {/* Profile Form */}
-              <div className="organic-card space-y-8">
-                <h4 className="text-xl font-bold">Personal Information</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-on-surface ml-1">Full Name</label>
-                    <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-on-surface-variant" />
-                      <input 
-                        type="text" 
-                        defaultValue="Rajesh Kumar"
-                        className="w-full pl-12 pr-6 py-4 bg-surface-container-high rounded-2xl border-none focus:ring-2 focus:ring-primary/20 transition-all outline-none font-medium"
-                      />
+              {/* Business Type Selection */}
+              <div className="organic-card space-y-6">
+                <h4 className="text-xl font-bold">Business Model</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <button 
+                    onClick={() => handleBusinessTypeChange('contract')}
+                    className={cn(
+                      "p-6 rounded-3xl border-2 transition-all text-left flex items-start gap-4",
+                      businessType === 'contract' ? "border-primary bg-primary/5" : "border-outline/10 hover:border-primary/50"
+                    )}
+                  >
+                    <div className="p-3 rounded-2xl bg-surface-container-highest text-primary">
+                      <Briefcase className="w-6 h-6" />
                     </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-on-surface ml-1">Email Address</label>
-                    <div className="relative">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-on-surface-variant" />
-                      <input 
-                        type="email" 
-                        defaultValue="rajesh@kumarconstructions.com"
-                        className="w-full pl-12 pr-6 py-4 bg-surface-container-high rounded-2xl border-none focus:ring-2 focus:ring-primary/20 transition-all outline-none font-medium"
-                      />
+                    <div>
+                      <p className="font-bold text-on-surface">Contract Business</p>
+                      <p className="text-xs text-on-surface-variant">Manage large scale projects and labor contracts.</p>
                     </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-on-surface ml-1">Phone Number</label>
-                    <div className="relative">
-                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-on-surface-variant" />
-                      <input 
-                        type="tel" 
-                        defaultValue="+91 98765 43210"
-                        className="w-full pl-12 pr-6 py-4 bg-surface-container-high rounded-2xl border-none focus:ring-2 focus:ring-primary/20 transition-all outline-none font-medium"
-                      />
+                  </button>
+                  <button 
+                    onClick={() => handleBusinessTypeChange('service')}
+                    className={cn(
+                      "p-6 rounded-3xl border-2 transition-all text-left flex items-start gap-4",
+                      businessType === 'service' ? "border-primary bg-primary/5" : "border-outline/10 hover:border-primary/50"
+                    )}
+                  >
+                    <div className="p-3 rounded-2xl bg-surface-container-highest text-primary">
+                      <Users className="w-6 h-6" />
                     </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-on-surface ml-1">Location</label>
-                    <div className="relative">
-                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-on-surface-variant" />
-                      <input 
-                        type="text" 
-                        defaultValue="Mumbai, Maharashtra"
-                        className="w-full pl-12 pr-6 py-4 bg-surface-container-high rounded-2xl border-none focus:ring-2 focus:ring-primary/20 transition-all outline-none font-medium"
-                      />
+                    <div>
+                      <p className="font-bold text-on-surface">Service Business</p>
+                      <p className="text-xs text-on-surface-variant">Manage individual service requests and team members.</p>
                     </div>
-                  </div>
+                  </button>
                 </div>
               </div>
+            </motion.div>
+          )}
 
-              {/* Preferences */}
-              <div className="organic-card space-y-6">
-                <h4 className="text-xl font-bold">Preferences</h4>
-                <div className="space-y-4">
-                  {[
-                    { label: 'Dark Mode', description: 'Switch between light and dark themes.', icon: Moon, toggle: true },
-                    { label: 'Push Notifications', description: 'Receive real-time updates on your phone.', icon: Bell, toggle: true },
-                    { label: 'Language', description: 'Set your preferred language for the interface.', icon: Globe, value: 'English' },
-                  ].map((pref, i) => (
-                    <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-surface-container-high/50">
-                      <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-surface-container-highest text-primary">
-                          <pref.icon className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <p className="font-bold text-on-surface">{pref.label}</p>
-                          <p className="text-xs text-on-surface-variant">{pref.description}</p>
-                        </div>
-                      </div>
-                      {pref.toggle ? (
-                        <button className="w-12 h-6 bg-primary rounded-full relative p-1 transition-all">
-                          <div className="w-4 h-4 bg-white rounded-full ml-auto" />
-                        </button>
-                      ) : (
-                        <button className="flex items-center gap-2 text-sm font-bold text-primary hover:underline">
-                          {pref.value} <ChevronRight className="w-4 h-4" />
-                        </button>
-                      )}
+          {activeTab === 'language' && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="organic-card space-y-6"
+            >
+              <h4 className="text-xl font-bold">{t('language')}</h4>
+              <div className="space-y-4">
+                <button 
+                  onClick={() => handleLanguageChange('en')}
+                  className={cn(
+                    "w-full flex items-center justify-between p-4 rounded-2xl transition-all",
+                    i18n.language === 'en' ? "bg-primary text-white" : "bg-surface-container-high hover:bg-surface-container-highest"
+                  )}
+                >
+                  <span className="font-bold">English</span>
+                  {i18n.language === 'en' && <ChevronRight className="w-5 h-5" />}
+                </button>
+                <button 
+                  onClick={() => handleLanguageChange('hi')}
+                  className={cn(
+                    "w-full flex items-center justify-between p-4 rounded-2xl transition-all",
+                    i18n.language === 'hi' ? "bg-primary text-white" : "bg-surface-container-high hover:bg-surface-container-highest"
+                  )}
+                >
+                  <span className="font-bold">हिन्दी (Hindi)</span>
+                  {i18n.language === 'hi' && <ChevronRight className="w-5 h-5" />}
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'accessibility' && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="organic-card space-y-6"
+            >
+              <h4 className="text-xl font-bold">{t('accessibility')}</h4>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-2xl bg-surface-container-high/50">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-xl bg-surface-container-highest text-primary">
+                      <Type className="w-5 h-5" />
                     </div>
-                  ))}
+                    <div>
+                      <p className="font-bold text-on-surface">{t('dyslexia_friendly')}</p>
+                      <p className="text-xs text-on-surface-variant">Enhance readability with specialized fonts and spacing.</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={toggleDyslexiaMode}
+                    className={cn(
+                      "w-12 h-6 rounded-full relative p-1 transition-all",
+                      isDyslexiaMode ? "bg-primary" : "bg-outline/30"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-4 h-4 bg-white rounded-full transition-all",
+                      isDyslexiaMode ? "ml-auto" : "ml-0"
+                    )} />
+                  </button>
                 </div>
               </div>
             </motion.div>
@@ -181,8 +277,4 @@ export default function Settings() {
       </div>
     </div>
   );
-}
-
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(' ');
 }

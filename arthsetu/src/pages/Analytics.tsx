@@ -11,6 +11,8 @@ import {
   BarChart3
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
+import { cn } from '../lib/utils';
 import { 
   AreaChart, 
   Area, 
@@ -48,36 +50,45 @@ const regionalData = [
 ];
 
 export default function Analytics() {
+  const { t } = useTranslation();
+
+  const kpis = [
+    { label: t('total_revenue'), value: '24.5%', change: '+2.1%', icon: TrendingUp, positive: true },
+    { label: t('projects'), value: '45 Days', change: '-5 Days', icon: Briefcase, positive: true },
+    { label: t('team'), value: '92%', change: '+4.5%', icon: Users, positive: true },
+    { label: t('pending_payouts'), value: '₹750', change: '+₹25', icon: TrendingDown, positive: false },
+  ];
+
   return (
     <div className="space-y-8">
       {/* Header */}
-      <section className="flex items-end justify-between">
+      <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
-          <h2 className="text-4xl font-bold tracking-tight text-on-surface">Analytics & Insights</h2>
-          <p className="text-on-surface-variant text-lg">Deep dive into your financial performance and job efficiency.</p>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-on-surface">{t('dashboard')}</h2>
+          <p className="text-on-surface-variant text-base md:text-lg">{t('manage_preferences')}</p>
         </div>
-        <div className="flex gap-4">
-          <button className="flex items-center gap-2 px-6 py-3 bg-surface-container rounded-2xl hover:bg-surface-container-high transition-all text-sm font-bold">
+        <div className="flex flex-wrap gap-3 md:gap-4">
+          <button className="flex items-center gap-2 px-6 py-3 bg-surface-container rounded-2xl hover:bg-surface-container-high transition-all text-sm font-bold flex-1 md:flex-none justify-center">
             <BarChart3 className="w-4 h-4" />
-            Custom Report
+            {t('reports')}
           </button>
-          <button className="btn-primary flex items-center gap-2 shadow-xl shadow-primary/20">
+          <button className="btn-primary flex items-center gap-2 shadow-xl shadow-primary/20 flex-1 md:flex-none justify-center">
             <ArrowUpRight className="w-5 h-5" />
-            Export Data
+            {t('save_changes')}
           </button>
         </div>
       </section>
 
       {/* Alerts Section */}
-      <section className="bg-orange-50 border border-orange-100 p-6 rounded-3xl flex items-center gap-6">
+      <section className="bg-orange-50 border border-orange-100 p-4 md:p-6 rounded-3xl flex flex-col md:flex-row items-center gap-4 md:gap-6">
         <div className="p-4 rounded-2xl bg-orange-100 text-orange-600">
           <AlertCircle className="w-8 h-8" />
         </div>
-        <div className="flex-1">
+        <div className="flex-1 text-center md:text-left">
           <h4 className="text-lg font-bold text-orange-900">Budget Alert: Metro Line 3 Foundation</h4>
           <p className="text-orange-800 text-sm">Project expenses have exceeded 90% of the allocated budget. Immediate review required.</p>
         </div>
-        <button className="px-6 py-3 bg-orange-900 text-white rounded-2xl font-bold text-sm hover:bg-orange-800 transition-all">
+        <button className="w-full md:w-auto px-6 py-3 bg-orange-900 text-white rounded-2xl font-bold text-sm hover:bg-orange-800 transition-all">
           Review Project
         </button>
       </section>
@@ -264,8 +275,4 @@ export default function Analytics() {
       </section>
     </div>
   );
-}
-
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(' ');
 }

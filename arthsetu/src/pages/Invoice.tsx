@@ -12,6 +12,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 const initialItems = [
   { id: '1', description: 'Foundation Work - Phase 1', quantity: 1, rate: 150000, amount: 150000 },
@@ -19,6 +20,7 @@ const initialItems = [
 ];
 
 export default function Invoice() {
+  const { t } = useTranslation();
   const [items, setItems] = useState(initialItems);
   const [client, setClient] = useState('MMRDA');
   const [project, setProject] = useState('Metro Line 3 Foundation');
@@ -58,19 +60,19 @@ export default function Invoice() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <section className="flex items-end justify-between">
+      <section className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
         <div className="space-y-2">
-          <h2 className="text-4xl font-bold tracking-tight text-on-surface">Generate Invoice</h2>
-          <p className="text-on-surface-variant text-lg">Create professional GST-compliant invoices for your clients.</p>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-on-surface">{t('reports')}</h2>
+          <p className="text-on-surface-variant text-base md:text-lg">{t('manage_preferences')}</p>
         </div>
-        <div className="flex gap-4">
-          <button className="flex items-center gap-2 px-6 py-3 bg-surface-container rounded-2xl hover:bg-surface-container-high transition-all text-sm font-bold">
+        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+          <button className="flex items-center justify-center gap-2 px-6 py-3 bg-surface-container rounded-2xl hover:bg-surface-container-high transition-all text-sm font-bold">
             <Eye className="w-4 h-4" />
-            Preview
+            {t('dashboard')}
           </button>
-          <button className="btn-primary flex items-center gap-2 shadow-xl shadow-primary/20">
+          <button className="btn-primary flex items-center justify-center gap-2 shadow-xl shadow-primary/20">
             <Send className="w-5 h-5" />
-            Send to Client
+            {t('save_changes')}
           </button>
         </div>
       </section>
@@ -152,8 +154,8 @@ export default function Invoice() {
 
               <div className="space-y-4">
                 {items.map((item) => (
-                  <div key={item.id} className="grid grid-cols-12 gap-4 items-end">
-                    <div className="col-span-6 space-y-2">
+                  <div key={item.id} className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end bg-surface-container-high/20 p-4 rounded-2xl sm:bg-transparent sm:p-0">
+                    <div className="col-span-1 sm:col-span-6 space-y-2">
                       <label className="text-xs font-bold text-on-surface-variant ml-1">Description</label>
                       <input 
                         type="text" 
@@ -163,7 +165,7 @@ export default function Invoice() {
                         className="w-full px-4 py-3 bg-surface-container-high rounded-xl border-none text-sm outline-none"
                       />
                     </div>
-                    <div className="col-span-2 space-y-2">
+                    <div className="col-span-1 sm:col-span-2 space-y-2">
                       <label className="text-xs font-bold text-on-surface-variant ml-1">Qty</label>
                       <input 
                         type="number" 
@@ -172,7 +174,7 @@ export default function Invoice() {
                         className="w-full px-4 py-3 bg-surface-container-high rounded-xl border-none text-sm outline-none"
                       />
                     </div>
-                    <div className="col-span-2 space-y-2">
+                    <div className="col-span-1 sm:col-span-2 space-y-2">
                       <label className="text-xs font-bold text-on-surface-variant ml-1">Rate</label>
                       <input 
                         type="number" 
@@ -181,7 +183,7 @@ export default function Invoice() {
                         className="w-full px-4 py-3 bg-surface-container-high rounded-xl border-none text-sm outline-none"
                       />
                     </div>
-                    <div className="col-span-1 flex justify-center pb-3">
+                    <div className="col-span-1 sm:col-span-1 flex justify-center pb-3">
                       <button 
                         onClick={() => removeItem(item.id)}
                         className="p-2 text-on-surface-variant hover:text-red-500 transition-all"
@@ -189,7 +191,7 @@ export default function Invoice() {
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
-                    <div className="col-span-1 text-right pb-3">
+                    <div className="col-span-1 sm:col-span-1 text-right pb-3">
                       <p className="text-sm font-bold">₹{item.amount.toLocaleString()}</p>
                     </div>
                   </div>

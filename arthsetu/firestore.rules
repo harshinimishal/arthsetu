@@ -1,0 +1,208 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {uid}
+    // Fields:
+    //   - uid: string (required) - Firebase Auth UID
+    //   - displayName: string (optional) - User's name
+    //   - email: string (required) - User's email
+    //   - photoURL: string (optional) - Profile photo
+    //   - businessType: string (optional) - 'contract' or 'service'
+    //   - isDyslexiaMode: bool (optional) - Accessibility preference
+    //   - language: string (optional) - 'en' or 'hi'
+    //   - createdAt: string (optional) - ISO 8601 timestamp
+    //
+    // Collection: jobs
+    // Document ID: {jobId}
+    // Fields:
+    //   - id: string (optional)
+    //   - ownerUid: string (required) - UID of the owner
+    //   - title: string (required)
+    //   - client: string (optional)
+    //   - location: string (optional)
+    //   - status: string (required) - 'active', 'pending', 'completed'
+    //   - budget: number (optional)
+    //   - spent: number (optional)
+    //   - progress: number (optional)
+    //   - startDate: string (optional)
+    //   - createdAt: string (optional)
+    //
+    // Collection: workers
+    // Document ID: {workerId}
+    // Fields:
+    //   - id: string (optional)
+    //   - ownerUid: string (required)
+    //   - name: string (required)
+    //   - role: string (required)
+    //   - status: string (required) - 'active', 'inactive'
+    //   - dailyWage: number (optional)
+    //   - phone: string (optional)
+    //   - createdAt: string (optional)
+    //
+    // Collection: transactions
+    // Document ID: {transactionId}
+    // Fields:
+    //   - id: string (optional)
+    //   - ownerUid: string (required)
+    //   - type: string (required) - 'credit', 'debit'
+    //   - amount: number (required)
+    //   - category: string (optional)
+    //   - jobId: string (optional)
+    //   - date: string (required)
+    //   - status: string (required) - 'completed', 'pending'
+    //   - recipient: string (optional)
+    //   - createdAt: string (optional)
+    //
+    // Collection: invoices
+    // Document ID: {invoiceId}
+    // Fields:
+    //   - id: string (optional)
+    //   - ownerUid: string (required)
+    //   - invoiceNumber: string (required)
+    //   - jobId: string (required)
+    //   - clientName: string (optional)
+    //   - date: string (optional)
+    //   - dueDate: string (optional)
+    //   - totalAmount: number (required)
+    //   - status: string (required) - 'paid', 'pending', 'overdue'
+    //   - createdAt: string (optional)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.ownerUid;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "harshinimishal@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasRequiredFields(['uid', 'email']) &&
+             data.uid == request.auth.uid &&
+             isValidEmail(data.email) &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() < 100)) &&
+             (!('businessType' in data) || data.businessType in ['contract', 'service']) &&
+             (!('language' in data) || data.language in ['en', 'hi']);
+    }
+
+    function isValidJob(data) {
+      return hasRequiredFields(['ownerUid', 'title', 'status']) &&
+             data.ownerUid == request.auth.uid &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.status in ['active', 'pending', 'completed'] &&
+             (!('budget' in data) || data.budget is number) &&
+             (!('spent' in data) || data.spent is number) &&
+             (!('progress' in data) || (data.progress is number && data.progress >= 0 && data.progress <= 100));
+    }
+
+    function isValidWorker(data) {
+      return hasRequiredFields(['ownerUid', 'name', 'role', 'status']) &&
+             data.ownerUid == request.auth.uid &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.role is string && data.role.size() > 0 && data.role.size() < 100 &&
+             data.status in ['active', 'inactive'] &&
+             (!('dailyWage' in data) || data.dailyWage is number);
+    }
+
+    function isValidTransaction(data) {
+      return hasRequiredFields(['ownerUid', 'type', 'amount', 'date', 'status']) &&
+             data.ownerUid == request.auth.uid &&
+             data.type in ['credit', 'debit'] &&
+             data.amount is number &&
+             data.status in ['completed', 'pending'];
+    }
+
+    function isValidInvoice(data) {
+      return hasRequiredFields(['ownerUid', 'invoiceNumber', 'jobId', 'totalAmount', 'status']) &&
+             data.ownerUid == request.auth.uid &&
+             data.invoiceNumber is string &&
+             data.jobId is string &&
+             data.totalAmount is number &&
+             data.status in ['paid', 'pending', 'overdue'];
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid) && isValidUser(request.resource.data);
+      allow update: if isOwner(uid) && isValidUser(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /jobs/{jobId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && isValidJob(request.resource.data);
+      allow update: if isDocOwner() && isValidJob(request.resource.data);
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    match /workers/{workerId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && isValidWorker(request.resource.data);
+      allow update: if isDocOwner() && isValidWorker(request.resource.data);
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && isValidTransaction(request.resource.data);
+      allow update: if isDocOwner() && isValidTransaction(request.resource.data);
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    match /invoices/{invoiceId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && isValidInvoice(request.resource.data);
+      allow update: if isDocOwner() && isValidInvoice(request.resource.data);
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

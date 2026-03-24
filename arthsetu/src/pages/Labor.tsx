@@ -14,6 +14,9 @@ import {
   ArrowDownRight
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { cn } from '../lib/utils';
 
 const workers = [
   { id: '1', name: 'Amit Sharma', role: 'Mason', dailyWage: 850, status: 'active', attendance: 95, phone: '+91 98765 43210' },
@@ -24,6 +27,7 @@ const workers = [
 ];
 
 export default function Labor() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
 
   const filteredWorkers = workers.filter(w => 
@@ -34,23 +38,23 @@ export default function Labor() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <section className="flex items-end justify-between">
+      <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
-          <h2 className="text-4xl font-bold tracking-tight text-on-surface">Worker Registry</h2>
-          <p className="text-on-surface-variant text-lg">Manage your workforce, track attendance, and handle payouts.</p>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-on-surface">{t('team')}</h2>
+          <p className="text-on-surface-variant text-base md:text-lg">{t('manage_preferences')}</p>
         </div>
-        <button className="btn-primary flex items-center gap-2 shadow-xl shadow-primary/20">
+        <Link to="/labor/register" className="btn-primary flex items-center gap-2 shadow-xl shadow-primary/20 justify-center">
           <Plus className="w-5 h-5" />
-          Register New Worker
-        </button>
+          {t('register_new')}
+        </Link>
       </section>
 
       {/* Summary Cards */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {[
-          { label: 'Total Workforce', value: '156', icon: Users, color: 'text-primary' },
-          { label: 'Present Today', value: '142', icon: UserCheck, color: 'text-tertiary' },
-          { label: 'On Leave', value: '14', icon: UserMinus, color: 'text-secondary-container' },
+          { label: t('total_team'), value: '156', icon: Users, color: 'text-primary' },
+          { label: t('active_projects'), value: '142', icon: UserCheck, color: 'text-tertiary' },
+          { label: t('pending_payouts'), value: '14', icon: UserMinus, color: 'text-secondary-container' },
         ].map((card, i) => (
           <div key={i} className="organic-card flex items-center gap-6">
             <div className="p-4 rounded-2xl bg-surface-container-highest">
@@ -66,7 +70,7 @@ export default function Labor() {
 
       {/* Filters & Search */}
       <section className="flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="relative flex-1 md:max-w-md">
+        <div className="relative w-full md:max-w-md">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
           <input 
             type="text" 
@@ -77,11 +81,11 @@ export default function Labor() {
           />
         </div>
 
-        <div className="flex gap-4">
-          <button className="flex items-center gap-2 px-6 py-3 bg-surface-container rounded-2xl hover:bg-surface-container-high transition-all text-sm font-bold">
+        <div className="flex gap-4 w-full md:w-auto">
+          <Link to="/labor/attendance" className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-surface-container rounded-2xl hover:bg-surface-container-high transition-all text-sm font-bold">
             <Calendar className="w-4 h-4" />
             Attendance Log
-          </button>
+          </Link>
           <button className="p-3 bg-surface-container rounded-2xl hover:bg-surface-container-high transition-all">
             <Filter className="w-5 h-5 text-on-surface-variant" />
           </button>
@@ -157,9 +161,9 @@ export default function Labor() {
                   </td>
                   <td className="px-6 py-6 text-right">
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-2 hover:bg-surface-container-highest rounded-lg transition-all">
+                      <Link to={`/labor/${worker.id}`} className="p-2 hover:bg-surface-container-highest rounded-lg transition-all">
                         <ArrowUpRight className="w-4 h-4 text-primary" />
-                      </button>
+                      </Link>
                       <button className="p-2 hover:bg-surface-container-highest rounded-lg transition-all">
                         <MoreVertical className="w-4 h-4 text-on-surface-variant" />
                       </button>
@@ -240,8 +244,4 @@ export default function Labor() {
       </section>
     </div>
   );
-}
-
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(' ');
 }

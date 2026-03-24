@@ -45,3 +45,31 @@
 .btn-tertiary {
   @apply bg-tertiary text-white px-6 py-3 rounded-full font-medium transition-all hover:opacity-90 active:scale-95;
 }
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.dyslexia-mode {
+  letter-spacing: 0.05em !important;
+  line-height: 1.8 !important;
+  word-spacing: 0.1em !important;
+}
+
+.dyslexia-mode h1, 
+.dyslexia-mode h2, 
+.dyslexia-mode h3, 
+.dyslexia-mode h4, 
+.dyslexia-mode p, 
+.dyslexia-mode span, 
+.dyslexia-mode label, 
+.dyslexia-mode input, 
+.dyslexia-mode button {
+  letter-spacing: 0.05em !important;
+  line-height: 1.8 !important;
+}
