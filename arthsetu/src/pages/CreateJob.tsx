@@ -138,6 +138,7 @@ function LocationAutocomplete({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [mapsLoaded, setMapsLoaded] = useState(Boolean(window.google?.maps?.places));
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     if (window.google?.maps?.places) {
@@ -146,7 +147,10 @@ function LocationAutocomplete({
     }
 
     const apiKey = (import.meta as ImportMeta & { env?: Record<string, string> }).env?.VITE_GOOGLE_MAPS_KEY || '';
-    if (!apiKey) return;
+    if (!apiKey) {
+      setLoadError('Missing VITE_GOOGLE_MAPS_KEY. Add it to your .env file.');
+      return;
+    }
 
     const scriptId = 'google-maps-places-script';
     const existing = document.getElementById(scriptId) as HTMLScriptElement | null;
@@ -161,6 +165,9 @@ function LocationAutocomplete({
     script.async = true;
     script.defer = true;
     script.onload = () => setMapsLoaded(true);
+    script.onerror = () => {
+      setLoadError('Google Maps failed to load. Check API key restrictions and Places API enablement.');
+    };
     document.head.appendChild(script);
   }, []);
 
@@ -193,10 +200,11 @@ function LocationAutocomplete({
           ref={inputRef}
           value={value.address}
           onChange={(e) => onChange({ ...value, address: e.target.value })}
-          placeholder={mapsLoaded ? 'Type location to see autocomplete suggestions' : 'Add VITE_GOOGLE_MAPS_KEY to enable autocomplete'}
+          placeholder={mapsLoaded ? 'Type location to see autocomplete suggestions' : 'Waiting for Google Places...'}
           className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white shadow-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-400 transition-all text-sm"
         />
       </div>
+      {loadError && <p className="text-xs text-red-600">{loadError}</p>}
     </div>
   );
 }
@@ -239,9 +247,6 @@ export default function CreateJob() {
       lat: '',
       lng: '',
     },
-    requestedBudget: 0,
-    generateInvoice: true,
-    internalNotes: '',
   });
 
   useEffect(() => {
@@ -297,9 +302,6 @@ export default function CreateJob() {
       }
       if (!contractForm.startDate) {
         throw new Error('Start date is required.');
-      }
-      if (!contractForm.requestedBudget || contractForm.requestedBudget <= 0) {
-        throw new Error('Requested budget is required.');
       }
       return;
     }
@@ -416,8 +418,6 @@ export default function CreateJob() {
   };
 
   const createContractWorkflow = async () => {
-    const requestedBudget = Number(contractForm.requestedBudget || 0);
-
     const projectId = await createDocument(work, {
       title: contractForm.projectName,
       projectType: contractForm.projectType,
@@ -432,11 +432,10 @@ export default function CreateJob() {
       locationPlaceId: contractForm.location.placeId || null,
       latitude: contractForm.location.lat || null,
       longitude: contractForm.location.lng || null,
-      budget: requestedBudget,
-      requestedBudget,
+      budget: 0,
       spent: 0,
       model: 'contract',
-      notes: contractForm.internalNotes,
+      notes: null,
     });
 
     await createDocument('clients', {
@@ -447,37 +446,13 @@ export default function CreateJob() {
       linkedProjectId: projectId,
     });
 
-    await createDocument('transactions', {
-      type: 'credit',
-      amount: requestedBudget,
-      category: 'Client Budget',
-      jobId: projectId,
-      job: contractForm.projectName,
-      recipient: contractForm.clientName || 'Client',
-      date: contractForm.startDate || new Date().toISOString().slice(0, 10),
-      status: 'pending',
+    await createDocument('notifications', {
+      type: 'project-created',
+      title: `Project created: ${contractForm.projectName}`,
+      targetClientName: contractForm.clientName,
+      projectId,
+      status: 'queued',
     });
-
-    if (contractForm.generateInvoice) {
-      await createDocument('invoices', {
-        workId: projectId,
-        model: 'contract',
-        clientName: contractForm.clientName,
-        invoiceDate: new Date().toISOString().slice(0, 10),
-        dueDate: contractForm.endDate || contractForm.startDate || new Date().toISOString().slice(0, 10),
-        items: [
-          {
-            description: contractForm.projectName,
-            quantity: 1,
-            rate: requestedBudget,
-          },
-        ],
-        subtotal: requestedBudget,
-        tax: 0,
-        total: requestedBudget,
-        status: 'draft',
-      });
-    }
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -763,15 +738,6 @@ export default function CreateJob() {
                 value={contractForm.endDate}
                 onChange={(value) => setContractForm((p) => ({ ...p, endDate: value }))}
               />
-              <input
-                type="number"
-                min={0}
-                value={contractForm.requestedBudget}
-                onChange={(e) => setContractForm((p) => ({ ...p, requestedBudget: Number(e.target.value || 0) }))}
-                placeholder="Client Requested Budget"
-                required
-                className="p-3 rounded-xl bg-surface-container-high"
-              />
             </div>
 
             <div className="space-y-2">
@@ -798,22 +764,6 @@ export default function CreateJob() {
               value={contractForm.location}
               onChange={(location) => setContractForm((prev) => ({ ...prev, location }))}
             />
-
-            <textarea
-              value={contractForm.internalNotes}
-              onChange={(e) => setContractForm((p) => ({ ...p, internalNotes: e.target.value }))}
-              placeholder="Internal notes"
-              className="w-full p-3 rounded-xl bg-surface-container-high min-h-24"
-            />
-
-            <label className="inline-flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={contractForm.generateInvoice}
-                onChange={(e) => setContractForm((p) => ({ ...p, generateInvoice: e.target.checked }))}
-              />
-              Generate invoice / receipt now
-            </label>
           </motion.section>
         )}
 
