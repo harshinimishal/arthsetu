@@ -1,0 +1,47 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+
+@theme {
+  --font-sans: "Lexend", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-primary: #9f402d;
+  --color-secondary-container: #fe9832;
+  --color-tertiary: #006972;
+  --color-surface: #f9f7f4;
+  --color-on-surface: #1c1b1f;
+  --color-on-surface-variant: #49454f;
+  --color-outline: #79747e;
+  --color-surface-container: #f3f0eb;
+  --color-surface-container-high: #ece7e0;
+  --color-surface-container-highest: #e6e1d9;
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface font-sans;
+  }
+}
+
+.glass {
+  @apply backdrop-blur-xl bg-white/80;
+}
+
+.glass-dark {
+  @apply backdrop-blur-xl bg-black/40;
+}
+
+.organic-card {
+  @apply rounded-3xl bg-surface-container p-6 transition-all duration-300 hover:shadow-lg;
+}
+
+.btn-primary {
+  @apply bg-primary text-white px-6 py-3 rounded-full font-medium transition-all hover:opacity-90 active:scale-95;
+}
+
+.btn-secondary {
+  @apply bg-secondary-container text-on-surface px-6 py-3 rounded-full font-medium transition-all hover:opacity-90 active:scale-95;
+}
+
+.btn-tertiary {
+  @apply bg-tertiary text-white px-6 py-3 rounded-full font-medium transition-all hover:opacity-90 active:scale-95;
+}
